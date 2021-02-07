@@ -183,18 +183,24 @@ public class FtpClient {
      * 创建并进入指定文件夹
      */
     private void createDirectory(String path) throws IOException {
-        Assert.isTrue(path.startsWith(HfleConstant.DIRECTORY_SEPARATOR), HfleMessageConstant.FTP_PATH);
+        // 文件路径分隔符
+        String separator = HfleConstant.LINUX_SEPARATOR;
+        if (!path.contains(HfleConstant.LINUX_SEPARATOR) && path.contains(HfleConstant.WINDOWS_SEPARATOR)) {
+            separator = HfleConstant.WINDOWS_SEPARATOR;
+        } else {
+            Assert.isTrue(path.startsWith(HfleConstant.LINUX_SEPARATOR), HfleMessageConstant.FTP_PATH);
+        }
         // 根目录无需创建
-        if (Objects.equals(path, HfleConstant.DIRECTORY_SEPARATOR)) {
+        if (Objects.equals(path, HfleConstant.LINUX_SEPARATOR)) {
             changeWorkingDirectory(path);
             return;
         }
         // 如果远程目录不存在，则递归创建远程服务器目录
         if (!changeWorkingDirectory(path)) {
-            String[] dirs = path.split(HfleConstant.DIRECTORY_SEPARATOR);
+            String[] dirs = path.split(separator);
             StringBuilder pathDir = new StringBuilder();
             for (String item : dirs) {
-                pathDir.append(HfleConstant.DIRECTORY_SEPARATOR).append(item);
+                pathDir.append(separator).append(item);
                 String p = String.valueOf(pathDir);
                 if (!existPath(String.valueOf(pathDir))) {
                     // 创建文件夹
@@ -268,7 +274,7 @@ public class FtpClient {
     public void deleteFile(String path, String fileName) {
         try {
             initFtpClient();
-            //切换FTP目录
+            // 切换FTP目录
             client.changeWorkingDirectory(path);
             client.dele(fileName);
         } catch (Exception e) {

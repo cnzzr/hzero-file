@@ -1,5 +1,6 @@
 package org.hzero.file.infra.repository.impl;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -46,7 +47,12 @@ public class FileRepositoryImpl extends BaseRepositoryImpl<File> implements File
 
     @Override
     public List<FileDTO> selectFileByAttachmentUUID(Long tenantId, String bucketName, String attachmentUUID) {
-        return fileMapper.selectFileByAttachmentUUID(bucketName, attachmentUUID);
+        return fileMapper.selectFileByAttachmentUUID(bucketName, Collections.singletonList(attachmentUUID));
+    }
+
+    @Override
+    public Page<FileDTO> selectFileByAttachmentUUID(PageRequest pageRequest, Long tenantId, String bucketName, List<String> attachmentUUIDs) {
+        return PageHelper.doPageAndSort(pageRequest, () -> fileMapper.selectFileByAttachmentUUID(bucketName, attachmentUUIDs));
     }
 
     @Override

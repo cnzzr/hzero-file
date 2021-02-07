@@ -28,11 +28,11 @@ public interface FileMapper extends BaseMapper<File> {
      * 查询附件UUID下的文件
      *
      * @param bucketName     文件目录
-     * @param attachmentUUID UUID
+     * @param attachmentUUIDs UUID
      * @return List<FileDTO>
      */
     List<FileDTO> selectFileByAttachmentUUID(@Param("bucketName") String bucketName,
-                                             @Param("attachmentUUID") String attachmentUUID);
+                                             @Param("attachmentUUIDs") List<String> attachmentUUIDs);
 
     /**
      * 查询附件UUID下的文件数量

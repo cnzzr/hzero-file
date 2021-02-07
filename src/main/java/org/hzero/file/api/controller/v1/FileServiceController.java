@@ -4,10 +4,12 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiParam;
 import org.apache.commons.lang3.StringUtils;
 import org.hzero.core.base.BaseConstants;
 import org.hzero.core.base.BaseController;
@@ -18,6 +20,7 @@ import org.hzero.file.api.dto.FileParamsDTO;
 import org.hzero.file.api.dto.FileSimpleDTO;
 import org.hzero.file.app.service.FileService;
 import org.hzero.file.config.FileSwaggerApiConfig;
+import org.hzero.file.domain.entity.File;
 import org.hzero.file.domain.repository.FileRepository;
 import org.hzero.file.infra.constant.HfleMessageConstant;
 import org.hzero.file.infra.util.CodeUtils;
@@ -26,12 +29,15 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.util.Assert;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+import springfox.documentation.annotations.ApiIgnore;
 
+import io.choerodon.core.domain.Page;
 import io.choerodon.core.iam.ResourceLevel;
+import io.choerodon.mybatis.pagehelper.annotation.SortDefault;
+import io.choerodon.mybatis.pagehelper.domain.PageRequest;
+import io.choerodon.mybatis.pagehelper.domain.Sort;
+import io.choerodon.swagger.annotation.CustomPageRequest;
 import io.choerodon.swagger.annotation.Permission;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiParam;
 
 /**
  * 租户级文件服务接口类
@@ -162,6 +168,18 @@ public class FileServiceController extends BaseController {
             @ApiParam(value = "附件UUID", required = true) @PathVariable("attachmentUUID") String attachmentUuid) {
         List<FileDTO> list = fileRepository.selectFileByAttachmentUUID(organizationId, bucketName, attachmentUuid);
         return Results.success(list);
+    }
+
+    @ApiOperation(value = "获取指定附件ID的文件列表")
+    @Permission(permissionLogin = true, level = ResourceLevel.ORGANIZATION)
+    @GetMapping("/attachments")
+    @CustomPageRequest
+    public ResponseEntity<Page<FileDTO>> getAttachmentFiles(
+            @ApiParam(value = "租户ID", required = true) @PathVariable Long organizationId,
+            @ApiParam(value = "桶名") @RequestParam(value = "bucketName", required = false) String bucketName,
+            @ApiParam(value = "附件UUID") @RequestParam List<String> attachmentUuids,
+            @ApiIgnore @SortDefault(value = File.FIELD_FILE_ID, direction = Sort.Direction.DESC) PageRequest pageRequest) {
+        return Results.success(fileRepository.selectFileByAttachmentUUID(pageRequest, organizationId, bucketName, attachmentUuids));
     }
 
     @ApiOperation(value = "校验附件ID下文件的数量")

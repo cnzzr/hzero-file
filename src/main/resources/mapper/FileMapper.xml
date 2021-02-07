@@ -100,24 +100,27 @@
 
     <select id="selectFileByAttachmentUUID" resultType="org.hzero.file.api.dto.FileDTO">
         SELECT
-        hf.file_name,
-        hf.file_size,
-        hf.file_type,
-        hf.file_url,
-        hf.bucket_name,
-        hf.directory,
-        hf.created_by,
-        iu.login_name,
-        iu.real_name,
-        hf.creation_date
+            hf.file_name,
+            hf.file_size,
+            hf.file_type,
+            hf.file_url,
+            hf.bucket_name,
+            hf.directory,
+            hf.created_by,
+            iu.login_name,
+            iu.real_name,
+            hf.creation_date
         FROM
-        hfle_file hf
+            hfle_file hf
         LEFT JOIN iam_user iu ON iu.id = hf.created_by
         WHERE 1 = 1
         <if test="bucketName != null and bucketName != ''">
             AND hf.bucket_name = #{bucketName}
         </if>
-        AND hf.attachment_uuid = #{attachmentUUID}
+        AND hf.attachment_uuid IN
+        <foreach collection="attachmentUUIDs" item="item" index="index" open="(" separator="," close=")">
+            #{item}
+        </foreach>
     </select>
 
     <select id="selectFileUrlByAttachmentUUID" resultType="java.lang.String">
@@ -134,12 +137,14 @@
 
     <select id="selectFileWithUrls" resultType="org.hzero.file.api.dto.FileDTO">
         SELECT
+        hf.file_id,
         hf.file_name,
         hf.file_size,
         hf.file_type,
         hf.file_url,
         hf.bucket_name,
-        hf.directory
+        hf.directory,
+        hf.creation_date
         FROM
         hfle_file hf
         WHERE 1 = 1
@@ -154,12 +159,14 @@
 
     <select id="selectFileByUrls" resultType="org.hzero.file.api.dto.FileDTO">
         SELECT
+        hf.file_id,
         hf.file_name,
         hf.file_size,
         hf.file_type,
         hf.file_url,
         hf.bucket_name,
-        hf.directory
+        hf.directory,
+        hf.creation_date
         FROM
         hfle_file hf
         WHERE

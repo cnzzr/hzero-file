@@ -3,10 +3,10 @@ package org.hzero.file.app.service.impl;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.*;
-
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import org.apache.commons.codec.Charsets;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -41,8 +41,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
 import org.springframework.web.multipart.MultipartFile;
-
-import com.fasterxml.jackson.core.type.TypeReference;
 
 import io.choerodon.core.exception.CommonException;
 
@@ -101,16 +99,22 @@ public class ServerFileServiceImpl implements ServerFileService {
             for (ServerVO item : serverList) {
                 if (Objects.equals(item.getEnabledFlag(), BaseConstants.Flag.YES)) {
                     Assert.notNull(item.getRootDir(), BaseConstants.ErrorCode.DATA_NOT_EXISTS);
-                    String filePath = item.getRootDir() + path;
+                    // 根据根路径判断服务器类型
+                    String separator = HfleConstant.LINUX_SEPARATOR;
+                    String rootDir = item.getRootDir();
+                    if (!rootDir.contains(HfleConstant.LINUX_SEPARATOR) && rootDir.contains(HfleConstant.WINDOWS_SEPARATOR)) {
+                        separator = HfleConstant.WINDOWS_SEPARATOR;
+                    }
+                    String filePath = rootDir + path;
                     // 记录文件
                     File file = new File().setAttachmentUuid(uuid)
                             .setFileSize(multipartFile.getSize())
-                            .setFileUrl(filePath + HfleConstant.DIRECTORY_SEPARATOR + fileName)
+                            .setFileUrl(filePath + separator + fileName)
                             .setTenantId(tenantId)
                             .setBucketName(HfleConstant.DEFAULT_ATTACHMENT_UUID)
                             .setFileName(fileName)
                             .setFileType(multipartFile.getContentType())
-                            .setFileKey(filePath + HfleConstant.DIRECTORY_SEPARATOR + fileName)
+                            .setFileKey(filePath + separator + fileName)
                             .setServerCode(item.getServerCode())
                             .setSourceType(String.valueOf(FileServiceType.SERVER.getValue()));
                     fileRepository.insertSelective(file);
@@ -155,12 +159,16 @@ public class ServerFileServiceImpl implements ServerFileService {
             throw new CommonException(BaseConstants.ErrorCode.DATA_NOT_EXISTS);
         }
         String password;
-        String[] str = url.split(HfleConstant.DIRECTORY_SEPARATOR);
+        String separator = HfleConstant.LINUX_SEPARATOR;
+        if (!url.contains(HfleConstant.LINUX_SEPARATOR) && url.contains(HfleConstant.WINDOWS_SEPARATOR)) {
+            separator = HfleConstant.WINDOWS_SEPARATOR;
+        }
+        String[] str = url.split(separator);
         String fileName = str[str.length - 1];
         StringBuilder sb = new StringBuilder();
         for (int i = 0; i < str.length - 1; i++) {
             if (StringUtils.isNotBlank(str[i])) {
-                sb.append(HfleConstant.DIRECTORY_SEPARATOR).append(str[i]);
+                sb.append(separator).append(str[i]);
             }
         }
         byte[] data = null;

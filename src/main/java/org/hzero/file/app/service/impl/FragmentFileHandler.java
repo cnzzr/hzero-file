@@ -79,17 +79,23 @@ public class FragmentFileHandler implements FileHandler {
                 Long size = (long) inputStream.available();
                 for (ServerVO item : serverList) {
                     if (Objects.equals(item.getEnabledFlag(), BaseConstants.Flag.YES)) {
-                        Assert.notNull(item.getRootDir(), BaseConstants.ErrorCode.DATA_NOT_EXISTS);
-                        String realPath = item.getRootDir() + path;
+                        String rootDir = item.getRootDir();
+                        Assert.notNull(rootDir, BaseConstants.ErrorCode.DATA_NOT_EXISTS);
+                        // 根据根路径判断服务器类型
+                        String separator = HfleConstant.LINUX_SEPARATOR;
+                        if (!rootDir.contains(HfleConstant.LINUX_SEPARATOR) && rootDir.contains(HfleConstant.WINDOWS_SEPARATOR)) {
+                            separator = HfleConstant.WINDOWS_SEPARATOR;
+                        }
+                        String realPath = rootDir + path;
                         // 记录文件
                         File file = new File().setAttachmentUuid(uuid)
                                 .setFileSize(size)
-                                .setFileUrl(realPath + HfleConstant.DIRECTORY_SEPARATOR + filename)
+                                .setFileUrl(realPath + separator + filename)
                                 .setTenantId(tenantId)
                                 .setBucketName(HfleConstant.DEFAULT_ATTACHMENT_UUID)
                                 .setFileName(filename)
                                 .setFileType(StringUtils.isBlank(contentType) ? HfleConstant.DEFAULT_MULTI_TYPE : contentType)
-                                .setFileKey(realPath + HfleConstant.DIRECTORY_SEPARATOR + filename)
+                                .setFileKey(realPath + separator + filename)
                                 .setServerCode(item.getServerCode())
                                 .setSourceType(String.valueOf(FileServiceType.SERVER.getValue()));
                         fileRepository.insertSelective(file);

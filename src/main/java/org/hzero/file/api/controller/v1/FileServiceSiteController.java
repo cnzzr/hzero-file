@@ -18,6 +18,7 @@ import org.hzero.file.api.dto.FileParamsDTO;
 import org.hzero.file.api.dto.FileSimpleDTO;
 import org.hzero.file.app.service.FileService;
 import org.hzero.file.config.FileSwaggerApiConfig;
+import org.hzero.file.domain.entity.File;
 import org.hzero.file.domain.repository.FileRepository;
 import org.hzero.file.infra.util.CodeUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,11 +26,17 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import io.choerodon.core.domain.Page;
 import io.choerodon.core.iam.ResourceLevel;
+import io.choerodon.mybatis.pagehelper.annotation.SortDefault;
+import io.choerodon.mybatis.pagehelper.domain.PageRequest;
+import io.choerodon.mybatis.pagehelper.domain.Sort;
+import io.choerodon.swagger.annotation.CustomPageRequest;
 import io.choerodon.swagger.annotation.Permission;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
+import springfox.documentation.annotations.ApiIgnore;
 
 /**
  * 平台级文件服务接口类
@@ -150,6 +157,17 @@ public class FileServiceSiteController extends BaseController {
             @ApiParam(value = "附件UUID", required = true) @PathVariable("attachmentUUID") String attachmentUuid) {
         List<FileDTO> list = fileRepository.selectFileByAttachmentUUID(BaseConstants.DEFAULT_TENANT_ID, bucketName, attachmentUuid);
         return Results.success(list);
+    }
+
+    @ApiOperation(value = "获取指定附件ID的文件列表")
+    @Permission(permissionLogin = true, level = ResourceLevel.SITE)
+    @GetMapping("/attachments")
+    @CustomPageRequest
+    public ResponseEntity<Page<FileDTO>> getAttachmentFiles(
+            @ApiParam(value = "桶名") @RequestParam(value = "bucketName", required = false) String bucketName,
+            @ApiParam(value = "附件UUID") @RequestParam List<String> attachmentUuids,
+            @ApiIgnore @SortDefault(value = File.FIELD_FILE_ID, direction = Sort.Direction.DESC) PageRequest pageRequest) {
+        return Results.success(fileRepository.selectFileByAttachmentUUID(pageRequest, BaseConstants.DEFAULT_TENANT_ID, bucketName, attachmentUuids));
     }
 
     @ApiOperation(value = "校验附件ID下文件的数量")

@@ -5,6 +5,7 @@ import java.io.InputStream;
 import java.util.Objects;
 import java.util.Properties;
 
+import com.jcraft.jsch.*;
 import org.apache.commons.io.IOUtils;
 import org.hzero.core.base.BaseConstants;
 import org.hzero.file.infra.constant.HfleConstant;
@@ -12,8 +13,6 @@ import org.hzero.file.infra.constant.HfleMessageConstant;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.util.Assert;
-
-import com.jcraft.jsch.*;
 
 import io.choerodon.core.exception.CommonException;
 
@@ -166,15 +165,21 @@ public class SftpClient {
      * 创建并进入指定文件夹
      */
     private void createDirectory(String path) throws SftpException {
-        Assert.isTrue(path.startsWith(HfleConstant.DIRECTORY_SEPARATOR), HfleMessageConstant.FTP_PATH);
+        // 文件路径分隔符
+        String separator = HfleConstant.LINUX_SEPARATOR;
+        if (!path.contains(HfleConstant.LINUX_SEPARATOR) && path.contains(HfleConstant.WINDOWS_SEPARATOR)) {
+            separator = HfleConstant.WINDOWS_SEPARATOR;
+        } else {
+            Assert.isTrue(path.startsWith(HfleConstant.LINUX_SEPARATOR), HfleMessageConstant.FTP_PATH);
+        }
         try {
             sftp.cd(path);
         } catch (SftpException e) {
-            //目录不存在，则创建文件夹
-            String[] dirs = path.split(HfleConstant.DIRECTORY_SEPARATOR);
+            // 目录不存在，则创建文件夹
+            String[] dirs = path.split(separator);
             StringBuilder tempPath = new StringBuilder();
             for (String dir : dirs) {
-                tempPath.append(HfleConstant.DIRECTORY_SEPARATOR).append(dir);
+                tempPath.append(separator).append(dir);
                 try {
                     sftp.cd(String.valueOf(tempPath));
                 } catch (SftpException ex) {
@@ -196,7 +201,6 @@ public class SftpClient {
         initSftpClient();
         InputStream is = null;
         try {
-            Assert.isTrue(path.startsWith(HfleConstant.DIRECTORY_SEPARATOR), HfleMessageConstant.FTP_PATH);
             sftp.cd(path);
             is = sftp.get(fileName);
             return IOUtils.toByteArray(is);

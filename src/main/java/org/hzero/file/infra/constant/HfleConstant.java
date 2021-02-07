@@ -36,6 +36,9 @@ public class HfleConstant {
      * 默认文件分隔符
      */
     public static final String DIRECTORY_SEPARATOR = "/";
+
+    public static final String LINUX_SEPARATOR = "/";
+    public static final String WINDOWS_SEPARATOR = "\\";
     /**
      * 上传目录禁止出现的字符
      */

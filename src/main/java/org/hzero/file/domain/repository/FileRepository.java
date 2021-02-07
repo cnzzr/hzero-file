@@ -29,6 +29,17 @@ public interface FileRepository extends BaseRepository<File> {
     List<FileDTO> selectFileByAttachmentUUID(Long tenantId, String bucketName, String attachmentUUID);
 
     /**
+     * 根据附件UUID查询文件列表
+     *
+     * @param pageRequest     分页
+     * @param tenantId        租户ID
+     * @param bucketName      文件目录
+     * @param attachmentUUIDs 附件UUID
+     * @return List<FileDTO>
+     */
+    Page<FileDTO> selectFileByAttachmentUUID(PageRequest pageRequest, Long tenantId, String bucketName, List<String> attachmentUUIDs);
+
+    /**
      * 根据附件UUID获取文件个数
      *
      * @param tenantId       租户ID
